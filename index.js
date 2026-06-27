@@ -1,6 +1,18 @@
 const mineflayer = require('mineflayer')
 
+let retryCount = 0
+const maxRetry = 5
+
+function randomDelay(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
 function createBot() {
+  if (retryCount >= maxRetry) {
+    console.log('Terlalu banyak gagal, bot berhenti. Restart manual diperlukan.')
+    return
+  }
+
   const bot = mineflayer.createBot({
     host: 'robbymc.usga.me',
     username: 'FrancescoDap',
@@ -9,15 +21,16 @@ function createBot() {
 
   bot.on('spawn', () => {
     console.log('Bot berhasil join server!')
+    retryCount = 0 // Reset retry jika berhasil join
 
     setTimeout(() => {
       bot.chat(`/login ${process.env.PASSWORD}`)
-    }, 2000)
+    }, randomDelay(10000, 15000))
 
     setInterval(() => {
       bot.setControlState('jump', true)
       setTimeout(() => bot.setControlState('jump', false), 500)
-    }, 30000)
+    }, randomDelay(25000, 35000))
   })
 
   bot.on('message', (message) => {
@@ -27,30 +40,35 @@ function createBot() {
       setTimeout(() => {
         bot.chat(`/registrasi ${process.env.PASSWORD}`)
         console.log('Bot melakukan registrasi')
-      }, 1000)
+      }, randomDelay(2000, 4000))
     }
 
     if (msg.includes('login') || msg.includes('masuk')) {
       setTimeout(() => {
         bot.chat(`/login ${process.env.PASSWORD}`)
         console.log('Bot melakukan login')
-      }, 1000)
+      }, randomDelay(2000, 4000))
     }
   })
 
   bot.on('kicked', (reason) => {
     console.log('Kicked:', reason)
-    setTimeout(createBot, 60000)
+    retryCount++
+    const delay = randomDelay(180000, 300000) // 3-5 menit
+    console.log(`Retry ke-${retryCount}, reconnect dalam ${delay/1000} detik...`)
+    setTimeout(createBot, delay)
   })
 
   bot.on('end', () => {
     console.log('Disconnected, reconnecting...')
-    setTimeout(createBot, 60000)
+    retryCount++
+    setTimeout(createBot, randomDelay(180000, 300000))
   })
 
   bot.on('error', (err) => {
     console.log('Error:', err)
-    setTimeout(createBot, 60000)
+    retryCount++
+    setTimeout(createBot, randomDelay(180000, 300000))
   })
 }
 
