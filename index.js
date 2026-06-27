@@ -16,7 +16,7 @@ function createBot() {
   const bot = mineflayer.createBot({
     host: 'robbymc.usga.me',
     username: 'FrancescoDap',
-    version: '1.21.4'
+    version: false
   })
 
   bot.on('spawn', () => {
