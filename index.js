@@ -9,19 +9,21 @@ function randomDelay(min, max) {
 
 function createBot() {
   if (retryCount >= maxRetry) {
-    console.log('Terlalu banyak gagal, bot berhenti. Restart manual diperlukan.')
+    console.log('Terlalu banyak gagal, bot berhenti.')
     return
   }
 
   const bot = mineflayer.createBot({
     host: 'robbymc.usga.me',
     username: 'FrancescoDap',
-    version: false
+    version: false,
+    hideErrors: false
   })
 
-  bot.on('spawn', () => {
-    console.log('Bot berhasil join server!')
-    retryCount = 0 // Reset retry jika berhasil join
+  bot.on('login', () => {
+    const socket = bot._client.socket
+    console.log(`Logged in to ${socket.server || socket._host}`)
+    retryCount = 0
 
     setTimeout(() => {
       bot.chat(`/login ${process.env.PASSWORD}`)
@@ -51,16 +53,20 @@ function createBot() {
     }
   })
 
-  bot.on('kicked', (reason) => {
-    console.log('Kicked:', reason)
+  bot.on('kicked', (reason, loggedIn) => {
+    if (loggedIn) {
+      console.log(`Kicked from server: ${reason}`)
+    } else {
+      console.log(`Kicked whilst trying to connect: ${reason}`)
+    }
     retryCount++
-    const delay = randomDelay(180000, 300000) // 3-5 menit
+    const delay = randomDelay(180000, 300000)
     console.log(`Retry ke-${retryCount}, reconnect dalam ${delay/1000} detik...`)
     setTimeout(createBot, delay)
   })
 
-  bot.on('end', () => {
-    console.log('Disconnected, reconnecting...')
+  bot.on('end', (reason) => {
+    console.log(`Disconnected: ${reason}`)
     retryCount++
     setTimeout(createBot, randomDelay(180000, 300000))
   })
