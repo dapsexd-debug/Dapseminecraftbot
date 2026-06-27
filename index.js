@@ -40,17 +40,17 @@ function createBot() {
 
   bot.on('kicked', (reason) => {
     console.log('Kicked:', reason)
-    setTimeout(createBot, 15000)
+    setTimeout(createBot, 60000)
   })
 
   bot.on('end', () => {
     console.log('Disconnected, reconnecting...')
-    setTimeout(createBot, 15000)
+    setTimeout(createBot, 60000)
   })
 
   bot.on('error', (err) => {
     console.log('Error:', err)
-    setTimeout(createBot, 15000)
+    setTimeout(createBot, 60000)
   })
 }
 
